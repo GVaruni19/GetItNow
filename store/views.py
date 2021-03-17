@@ -11,23 +11,68 @@ from .forms import CreateUserForm
 
 # Create your views here.
 
+def registerPage(request):
+    form = CreateUserForm()
+
+    if request.method=="POST":
+        form = CreateUserForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            username = form.cleaned_data.get('username')
+            Customer.objects.create(user=user, name=username, email=user.email)
+            messages.success(request, "Account created successfully for "+username)
+            return redirect('login')
+
+    context = {'form': form}
+    return render(request, 'store/registration.html', context)
+
+
+def loginPage(request):
+    if request.method=="POST":
+        username = request.POST.get('username')
+        password = request.POST.get('password')        
+        user = authenticate(request, username=username, password=password)
+
+        if user:
+            login(request, user)
+            messages.success(request, "Logged In")
+            return redirect('store')
+        else:
+            messages.error(request, "Invalid Credentials")
+            return redirect("login")
+
+    context = {}
+    return render(request, 'store/login.html', context)
+
+
+def logoutPage(request):
+    logout(request)
+    return redirect("/")
+
+
 def store(request):
     data = cartData(request)
-    cartItems = data['cartItems']
 
-    products = Product.objects.all()
-    context = {'products' : products, 'cartItems' :cartItems}
-    return render(request, 'store/store.html',context)
-
-
-def cart(request):
-    data = cartData(request)
     cartItems = data['cartItems']
     order = data['order']
     items = data['items']
 
-    context ={'items' :items, 'order': order, 'cartItems' :cartItems}
-    return render(request, 'store/cart.html',context)
+    products = Product.objects.all()
+    cat_menu = Category.objects.all()
+    context = {'products':products, 'cartItems':cartItems, 'cat_menu':cat_menu}
+    return render(request, 'store/store.html', context)
+
+
+def cart(request):
+    data = cartData(request)
+
+    cartItems = data['cartItems']
+    order = data['order']
+    items = data['items']
+    cat_menu = Category.objects.all()
+
+    context = {'items':items, 'order':order, 'cartItems':cartItems, 'cat_menu':cat_menu}
+    return render(request, 'store/cart.html', context)
 
 
 def checkout(request):
@@ -35,12 +80,13 @@ def checkout(request):
     cartItems = data['cartItems']
     order = data['order']
     items = data['items']
+    cat_menu = Category.objects.all()
 
-    context ={'items' :items, 'order': order, 'cartItems' :cartItems}
+    context ={'items' :items, 'order': order, 'cartItems' :cartItems, 'cat_menu':cat_menu}
     return render(request, 'store/checkout.html',context)
 
 
-def updateItem(request, customer):
+def updateItem(request):
     data = json.loads(request.body)
     productId = data['productId']
     action = data['action']
@@ -48,9 +94,8 @@ def updateItem(request, customer):
     print('Action: ',action)
     print('productId: ',productId)
 
-    customer = request.user.customer
     product = Product.objects.get(id = productId)
-    order, created = Order.objects.get_or_create(customer = customer, complete= False)
+    order, created = Order.objects.get_or_create(customer = request.user.customer, complete= False)
 
     orderItem, created = OrderItem.objects.get_or_create(order= order, product= product)
 
@@ -67,7 +112,7 @@ def updateItem(request, customer):
     return JsonResponse('item added', safe=False)
 
 
-def processOrder(request, customer):
+def processOrder(request):
     transaction_id = datetime.datetime.now().timestamp()
     data = json.loads(request.body)
 
@@ -98,58 +143,18 @@ def processOrder(request, customer):
     return JsonResponse('Payment complete!', safe=False)
 
 
-def registerPage(request):
-    form = CreateUserForm()
+def CategoryView(request, cats):
+    category_products = Product.objects.filter(category = cats.replace('-', ' '))
+    cat_menu = Category.objects.all()
 
-    if request.method=="POST":
-        form = CreateUserForm(request.POST)
-        if form.is_valid():
-            form.save()
-            user = form.cleaned_data.get('username')
-            messages.success(request, "Account created successfully for "+user)
-            return redirect('login')
+    context = {'cats':cats.title().replace('-', ' '), 'category_products':category_products, 'cat_menu':cat_menu}
+    return render(request, 'store/categories.html', context )
 
-    context = {'form': form}
-    return render(request, 'store/registration.html', context)
+def CategoryListView(request):
+    data = cartData(request)
 
-    # if request.method=="POST":
-    #     mail=request.POST.get('email', '')
-    #     first_name=request.POST.get('firstname', '')
-    #     last_name=request.POST.get('lastname', '')
-    #     username=request.POST.get('username', '')
-    #     password=request.POST.get('password', '')
-    #     confirmpassword=request.POST.get('confirmpassword', '')
-    #     userCheck=User.objects.filter(username=username) | User.objects.filter(email=mail)
-    #     if userCheck:
-    #         print('iamhere')
-    #         messages.error(request, "Username or Email already exists!")
-    #         return redirect("register")
-    #     else:
-    #         if password==confirmpassword:
-    #             user_obj=User.objects.create_user(first_name=first_name, last_name=last_name, password=password, email=mail, username=username)
-    #             user_obj.save()
-    #             messages.success(request, "Signed Up successfully")
-    #             return redirect("store")
-    #         else:
-    #             messages.error(request, "Passwords don't match!")
-    #             print('hi')
-    #             return redirect("register")
-    # return render(request, 'store/registration.html')
-
-
-def loginPage(request):
-    if request.method=="POST":
-        username = request.POST.get('username')
-        password = request.POST.get('password')        
-        user = authenticate(request, username=username, password=password)
-
-        if user:
-            login(request, user)
-            messages.success(request, "Logged In")
-            return redirect('store')
-        else:
-            messages.error(request, "Invalid Credentials")
-            return redirect("login")
-
-    context = {}
-    return render(request, 'store/login.html', context)
+    cartItems = data['cartItems']
+    order = data['order']
+    items = data['items']
+    cat_menu_list = Category.objects.all()
+    return render(request, 'store/category_list.html', {'cat_menu_list': cat_menu_list, 'cartItems':cartItems})
