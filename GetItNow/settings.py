@@ -11,7 +11,6 @@ https://docs.djangoproject.com/en/2.0/ref/settings/
 """
 
 import os
-import django_heroku
 from django.contrib.messages import constants as messages
 
 
@@ -30,11 +29,11 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/2.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get("SECRET_KEY")
+SECRET_KEY = 'a=m+1^c$evt6l5$f=(9ea^7n7r#r8rpjdu57&(((8ms(gvx2g('
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = [getitnowapp.herokuapp.com]
+ALLOWED_HOSTS = []
 
 
 # Application definition
@@ -134,4 +133,3 @@ STATIC_ROOT = os.path.join(VENV_PATH, 'static_root')
 
 MEDIA_URL = '/images/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'static/images')
-django_heroku.settings(locals())
