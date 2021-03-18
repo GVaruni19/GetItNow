@@ -1,0 +1,27 @@
+{% extends 'store/main.html' %}
+{% load static %}
+	
+{% block content %}
+{% if category_products %}
+  <h2>{{ cats }} Products</h2>
+  <br>
+  <div class="row">
+    {% for prod in category_products %}
+    <div class="col-lg-4">
+      <img class="thumbnail" src="{{prod.imageURL}}">
+      <div class="box-element product">
+        <h6><strong>{{prod.name}}</strong></h6>
+        <hr>
+        <button data-product={{prod.id}} data-action="add" class="btn btn-outline-secondary add-btn update-cart">Add to Cart</button>
+        <!-- <a class="btn btn-outline-success" href="#">View</a> -->
+        <h4 class="d-inline float-right">{{prod.price}} Rs.</h4>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+{% else %}
+  <h2>Sorry this page does not exists...</h2>
+{% endif %}
+    
+{% endblock %}

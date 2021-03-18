@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/2.0/ref/settings/
 """
 
 import os
+import django_heroku
 from django.contrib.messages import constants as messages
 
 
@@ -134,3 +135,4 @@ STATIC_ROOT = os.path.join(VENV_PATH, 'static_root')
 
 MEDIA_URL = '/images/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'static/images')
+django_heroku.settings(locals())
