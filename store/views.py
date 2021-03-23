@@ -144,10 +144,12 @@ def processOrder(request):
 
 
 def CategoryView(request, cats):
+    data = cartData(request)
+    cartItems = data['cartItems']
     category_products = Product.objects.filter(category = cats.replace('-', ' '))
     cat_menu = Category.objects.all()
 
-    context = {'cats':cats.title().replace('-', ' '), 'category_products':category_products, 'cat_menu':cat_menu}
+    context = {'cats':cats.title().replace('-', ' '), 'category_products':category_products, 'cat_menu':cat_menu, 'cartItems':cartItems}
     return render(request, 'store/categories.html', context )
 
 def CategoryListView(request):
